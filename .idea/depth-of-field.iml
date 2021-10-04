@@ -8,5 +8,10 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="Depth-of-field-master" />
+    <orderEntry type="module" module-name="lab04_A" />
+    <orderEntry type="module" module-name="lab04_B" />
+    <orderEntry type="module" module-name="4.WebGL_CubeAndLight&amp;Material" />
+    <orderEntry type="module" module-name="5.WebGL_TextureMapping" />
   </component>
 </module>

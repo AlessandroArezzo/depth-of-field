@@ -2,7 +2,12 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file:///media/ale-ubuntu/09BE00BF4278F943/Università/Computer Graphics &amp; 3D/Laboratorio/4.WebGL_CubeAndLight&amp;Material/.idea/4.WebGL_CubeAndLight&amp;Material.iml" filepath="/media/ale-ubuntu/09BE00BF4278F943/Università/Computer Graphics &amp; 3D/Laboratorio/4.WebGL_CubeAndLight&amp;Material/.idea/4.WebGL_CubeAndLight&amp;Material.iml" />
+      <module fileurl="file:///media/ale-ubuntu/09BE00BF4278F943/Università/Computer Graphics &amp; 3D/Laboratorio/5.WebGL_TextureMapping/.idea/5.WebGL_TextureMapping.iml" filepath="/media/ale-ubuntu/09BE00BF4278F943/Università/Computer Graphics &amp; 3D/Laboratorio/5.WebGL_TextureMapping/.idea/5.WebGL_TextureMapping.iml" />
+      <module fileurl="file://$USER_HOME$/Scaricati/Depth-of-field-master/.idea/Depth-of-field-master.iml" filepath="$USER_HOME$/Scaricati/Depth-of-field-master/.idea/Depth-of-field-master.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/depth-of-field.iml" filepath="$PROJECT_DIR$/.idea/depth-of-field.iml" />
+      <module fileurl="file:///media/ale-ubuntu/09BE00BF4278F943/Università/Computer Graphics &amp; 3D/Laboratorio/4.WebGL_CubeAndLight&amp;Material/lab04_A/.idea/lab04_A.iml" filepath="/media/ale-ubuntu/09BE00BF4278F943/Università/Computer Graphics &amp; 3D/Laboratorio/4.WebGL_CubeAndLight&amp;Material/lab04_A/.idea/lab04_A.iml" />
+      <module fileurl="file:///media/ale-ubuntu/09BE00BF4278F943/Università/Computer Graphics &amp; 3D/Laboratorio/4.WebGL_CubeAndLight&amp;Material/lab04_B/.idea/lab04_B.iml" filepath="/media/ale-ubuntu/09BE00BF4278F943/Università/Computer Graphics &amp; 3D/Laboratorio/4.WebGL_CubeAndLight&amp;Material/lab04_B/.idea/lab04_B.iml" />
     </modules>
   </component>
 </project>
