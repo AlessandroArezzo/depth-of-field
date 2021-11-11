@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Depth of field</title>
+        <meta charset="utf-8">
+    </head>
+    <body>
+    <div id="webgl-container"></div>
+    <script type="module" src="scripts/index.js"></script>
+        <script id="vertexShader" type="x-shader/x-vertex">
+            varying vec2 vUv;
+            void main() {
+                vUv = uv;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1);
+            }
+        </script>
+
+        <script id="CoCShader" type="x-shader/x-fragment">
+            #include <packing>
+            // depth of the
+            uniform sampler2D tDepth;
+
+            // camera parameters
+            uniform float cameraNear;
+            uniform float cameraFar;
+
+            uniform float focalDepth;
+            uniform float focalLength;
+            uniform float aperture;
+
+            varying vec2 vUv;
+
+            float readDepth( sampler2D depthSampler, vec2 coord ) {
+                float fragCoordZ = texture2D( depthSampler, coord ).x;
+                float viewZ = perspectiveDepthToViewZ( fragCoordZ, cameraNear, cameraFar );
+                return viewZToOrthographicDepth( viewZ, cameraNear, cameraFar );
+            }
+
+            void main() {
+                float depth = readDepth( tDepth, vUv );
+                float focalDepth = focalDepth * 1000.0;
+                float distance = - cameraFar * cameraNear / (depth * (cameraFar - cameraNear) - cameraFar)
+                                        * 1000.0; // distance of the object respect to the camera
+
+                // compute Circle of Confusion (CoC) for the current pixel
+                float CoC = aperture * (focalLength * (distance - focalDepth))
+                                / (distance * (focalDepth - focalLength));
+                CoC = clamp(CoC, -1.0, 1.0);
+
+                /* assign CoC of the foreground pixel to green component and CoC of the background
+                pixel to blue component */
+                if(CoC >= 0.0){
+                    gl_FragColor.b = CoC;
+                }
+                else{
+                    gl_FragColor.g = abs(CoC);
+                }
+            }
+
+        </script>
+        <script id="DoFShader" type="x-shader/x-fragment">
+            #include <packing>
+
+            uniform sampler2D tDiffuse; // current color that represents CoC
+            uniform sampler2D tOriginal; // original color of the current pixel (not blurred)
+
+            uniform float bokehBlurSize;
+            uniform float heightTex;
+            uniform float widthTex;
+
+            varying vec2 vUv;
+
+            float getWeight(float dist, float maxDist){
+                return 1.0 - dist/maxDist;
+            }
+            void main() {
+                vec3 sourceColor = texture2D(tOriginal, vUv).rgb; // not blurred color of the current pixel
+
+                float minCoC = 0.1;
+
+                const float max_iterations = 100.;
+                float blurSize = bokehBlurSize + 1.;
+                float CoC = max(texture2D(tDiffuse, vUv).g, texture2D(tDiffuse, vUv).b); // CoC of the current color
+                if (CoC > minCoC){ // if CoC <= minCoC -> pixel not blurred
+                    float bokehBlurWeightTotal = 0.0;
+                    vec3 blurColor = vec3(0.0);
+                    for (float i=0.; i<max_iterations; i++){
+                        if (i > blurSize*2.) break;
+                        for (float j=0.; j<max_iterations; j++){
+                            if (j > blurSize*2.) break;
+                            vec2 dir = vec2(i-bokehBlurSize, j-bokehBlurSize) * vec2(widthTex, heightTex);
+                            float dist = length(dir);
+                            if (dist > bokehBlurSize ){
+                                continue;
+                            }
+                            vec2 curUv = dir + vUv;
+                            float curCoC = max(texture2D(tDiffuse, curUv).g, texture2D(tDiffuse, curUv).b);
+                            if(curCoC/2. >= dist) {
+                                float weight = getWeight(dist, bokehBlurSize);
+                                bokehBlurWeightTotal += weight;
+                                blurColor +=  weight * texture2D(tOriginal, curUv).rgb;
+                            }
+                        }
+                    }
+                    blurColor /= bokehBlurWeightTotal;
+
+                    gl_FragColor.rgb = mix(sourceColor, blurColor, CoC);
+                    gl_FragColor.a = 1.0;
+
+                }
+                else{
+                    gl_FragColor.rgb = sourceColor;
+                }
+
+            }
+        </script>
+
+        <script src="https://cdn.jsdelivr.net/npm/three@0.115/build/three.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/three@0.115/examples/js/loaders/GLTFLoader.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/three@0.115/examples/js/controls/OrbitControls.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/16.7.0/Tween.js"></script>
+
+    </body>
+</html>

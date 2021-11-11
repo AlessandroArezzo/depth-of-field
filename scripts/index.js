@@ -1,3 +1,8 @@
+import {EffectComposer} from "https://cdn.jsdelivr.net/npm/three@0.115/examples/jsm/postprocessing/EffectComposer.js";
+import {ShaderPass} from "https://cdn.jsdelivr.net/npm/three@0.115/examples/jsm/postprocessing/ShaderPass.js";
+import {RenderPass} from "https://cdn.jsdelivr.net/npm/three@0.115/examples/jsm/postprocessing/RenderPass.js";
+import {GUI} from "https://cdn.jsdelivr.net/npm/three@0.115/examples/jsm/libs/dat.gui.module.js";
+import {FXAAShader} from "https://cdn.jsdelivr.net/npm/three@0.115/examples/jsm/shaders/FXAAShader.js";
 
 function degrees_to_radians(degrees) {
     const pi = Math.PI;
@@ -11,7 +16,7 @@ function main() {
     const defaultCameraParameters = {
         focalDepth: 0.09,
         focalLength: 35,
-        fstop: 5.6
+        aperture: 6
     };
 
     // Set renderer
@@ -37,12 +42,197 @@ function main() {
     const controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.target = new THREE.Vector3(-2.5, 3, -200);
     controls.update()
-    //controls.minDistance = 100;
-    //controls.maxDistance = 200;
 
     // init scene
 
     initScene();
+    controls.target = scene.getObjectByName( "portal" ).position;
+
+    // init DoF shaders
+
+    const basicTarget = getRenderTarget();
+
+    const CoCShader = {
+        vertexShader: document.getElementById( 'vertexShader' ).textContent,
+        fragmentShader: document.getElementById( 'CoCShader' ).textContent,
+        uniforms: {
+            cameraNear: { value: camera.near },
+            cameraFar: { value: camera.far },
+            tDepth: { value: null },
+            focalDepth: {value: defaultCameraParameters.focalDepth},
+            focalLength: {value: defaultCameraParameters.focalLength},
+            aperture: {value: defaultCameraParameters.aperture},
+        },
+    };
+    const DoFShader = {
+        vertexShader: document.getElementById( 'vertexShader' ).textContent,
+        fragmentShader: document.getElementById( 'DoFShader' ).textContent,
+        uniforms: {
+            tDiffuse: {value: null},
+            tOriginal: {value: null},
+            heightTex: {value: 1.0 / window.innerHeight.toFixed(1)},
+            widthTex: {value: 1.0 / window.innerWidth.toFixed(1)},
+            bokehBlurSize: {value: 3.0},
+        }
+    };
+
+    const antialiasingPass = new ShaderPass( FXAAShader );
+    antialiasingPass.uniforms[ 'resolution' ].value.set( 1 / window.innerWidth, 1 / window.innerHeight );
+    antialiasingPass.renderToScreen = true;
+
+    const renderPass = new RenderPass( scene, camera );
+    const DoFComposer = new EffectComposer(renderer);
+    const CoCPass = new ShaderPass( CoCShader )
+    const DoFPass = new ShaderPass( DoFShader )
+    DoFComposer.addPass( renderPass );
+    DoFComposer.addPass( CoCPass );
+    DoFComposer.addPass( DoFPass );
+    DoFComposer.addPass(antialiasingPass);
+
+    // init GUI
+
+    let gui = new GUI();
+    gui.width = 250;
+
+
+    const guiControls = new function(){
+        this.dofEnabled = true;
+        this.pointOfView = "Free";
+        this.target = "Portal";
+    }
+    {
+        const sceneFolder = gui.addFolder("Scene");
+        sceneFolder.add(guiControls, "pointOfView", ["Free", "Dragons", "Astronauts", "Planet",
+            "Square", "Rocket"])
+            .name("Point of View").onChange(function (){
+                changePointOfView();
+            }).listen();
+
+        sceneFolder.add(guiControls, "target", ["Portal", "Dragons", "Astronauts", "Planet",
+            "Square", "Rocket"])
+            .name("Camera Target").onChange(function (){
+                let target;
+                if (guiControls.target === "Portal") {
+                    target = scene.getObjectByName("portal").position;
+                } else if (guiControls.target === "Dragons") {
+                    target = new THREE.Vector3(472, 250, 289);
+                } else if (guiControls.target === "Astronauts") {
+                    target = new THREE.Vector3(453, 68, -54);
+                } else if (guiControls.target === "Planet") {
+                    target = scene.getObjectByName("planet").position;
+                } else if (guiControls.target === "Square") {
+                    target = scene.getObjectByName("square").position;
+                } else if (guiControls.target === "Rocket") {
+                    target = scene.getObjectByName("rocket").position;
+                }
+                changePointOfView(target);
+
+        });
+        sceneFolder.open();
+    }
+
+    function changePointOfView(targetPosition = null){
+        const pointOfView = guiControls.pointOfView;
+        const targetObject = guiControls.target;
+        let newPos;
+        if (pointOfView === "Dragons"){
+            if(targetObject === "Portal" || targetObject === "Dragons")
+                newPos= new THREE.Vector3( 552, 276, 507);
+            else if (targetObject === "Astronauts")
+                newPos= new THREE.Vector3( 363, 300, 436);
+            else if (targetObject === "Planet")
+                newPos= new THREE.Vector3( 656, 170, 224);
+            else if (targetObject === "Square")
+                newPos= new THREE.Vector3( 549, 227, 499);
+            else if (targetObject === "Rocket")
+                newPos= new THREE.Vector3( 372, 268, 391);
+        }
+        else if (pointOfView === "Astronauts"){
+            if(targetObject === "Portal" || targetObject === "Astronauts")
+                newPos= new THREE.Vector3( 538, 89, -15);
+            else if (targetObject === "Dragons")
+                newPos= new THREE.Vector3( 416, 26, -186);
+            else if (targetObject === "Planet")
+                newPos= new THREE.Vector3( 567, 49, -183);
+            else if (targetObject === "Square")
+                newPos= new THREE.Vector3( 500, 26, 25);
+            else if (targetObject === "Rocket")
+                newPos= new THREE.Vector3( 387, 73, -168);
+        }
+        else if (pointOfView === "Planet"){
+            if(targetObject === "Portal" || targetObject === "Astronauts" || targetObject === "Square")
+                newPos= new THREE.Vector3(49, 537, 620);
+            else if (targetObject === "Planet" || targetObject === "Dragons" || targetObject === "Rocket")
+                newPos= new THREE.Vector3( -89, 585, 308);
+        }
+        else if (pointOfView === "Square"){
+            if(targetObject === "Portal")
+                newPos= new THREE.Vector3( 128, 481, -91);
+            else if (targetObject === "Dragons")
+                newPos= new THREE.Vector3( 112, 355, -358);
+            else if (targetObject === "Astronauts")
+                newPos= new THREE.Vector3( 114, 452, -238);
+            else if (targetObject === "Planet")
+                newPos= new THREE.Vector3( 292, 441, -566);
+            else if (targetObject === "Square")
+                newPos= new THREE.Vector3( 391, 447, -554);
+            else if (targetObject === "Rocket")
+                newPos= new THREE.Vector3( 309, 536, -378);
+        }
+        else if (pointOfView === "Rocket"){
+            if(targetObject === "Portal")
+                newPos= new THREE.Vector3( 895, 125, 680);
+            else if (targetObject === "Dragons")
+                newPos= new THREE.Vector3( 917, 118, 701);
+            else if (targetObject === "Astronauts")
+                newPos= new THREE.Vector3( 865, 108, 649);
+            else if (targetObject === "Planet")
+                newPos= new THREE.Vector3( 1019, 66, 442);
+            else if (targetObject === "Square")
+                newPos= new THREE.Vector3( 888, 113, 681);
+            else if (targetObject === "Rocket")
+                newPos= new THREE.Vector3( 859, 175, 680);
+        }
+        new TWEEN.Tween(camera.position)
+            .to(newPos, 2000)
+            .onUpdate(() =>
+                camera.position.set(camera.position.x,camera.position.y,camera.position.z)
+            )
+            .start().onComplete(() => {
+                if (targetPosition) {
+                    const startRotation = new THREE.Euler().copy(camera.rotation);
+                    camera.lookAt(targetPosition);
+                    const endRotation = new THREE.Euler().copy(camera.rotation);
+                    camera.rotation.copy(startRotation);
+                    new TWEEN.Tween(camera.rotation)
+                        .to({x: endRotation.x, y: endRotation.y, z: endRotation.z}, 600)
+                        .onUpdate(() =>
+                            camera.rotation.set(camera.rotation.x, camera.rotation.y, camera.rotation.z)
+                        )
+                        .start().onComplete(() => {
+                            controls.target = targetPosition;
+                        }
+                    )
+                }
+            }
+        );
+    }
+
+    {
+        const DofFolder = gui.addFolder("Depth Of Field");
+        DofFolder.add(guiControls, "dofEnabled", "enabled").name("DoF enabled").listen().onChange(function (){
+            const dofEnabled = guiControls.dofEnabled;
+            CoCPass.enabled = dofEnabled;
+            DoFPass.enabled = dofEnabled;
+            antialiasingPass.enabled = dofEnabled;
+        });
+        DofFolder.add(CoCPass.uniforms.focalDepth, 'value', 0, 1., defaultCameraParameters.focalDepth).step(0.001).name('focalDepth');
+        DofFolder.add(CoCPass.uniforms.focalLength, 'value', 12., 100., defaultCameraParameters.focalLength).step(1.0).name('focalLength');
+        DofFolder.add(CoCPass.uniforms.aperture, 'value', 1., 10., defaultCameraParameters.aperture).step(0.1).name('aperture');
+        DofFolder.add(DoFPass.uniforms.bokehBlurSize, 'value', 1, 5., 3.).step(1,).name('blurSize');
+        DofFolder.open();
+    }
+
 
     // launch animate function
     animate();
@@ -55,13 +245,6 @@ function main() {
             r_background + 'dark-s_py.jpg', r_background + 'dark-s_ny.jpg',
             r_background + 'dark-s_pz.jpg', r_background + 'dark-s_nz.jpg' ];
 
-        /*
-        const r_background = '/textures/cube/skyboxsun25deg/'
-        const urls_background = [ r_background + 'px.jpg', r_background + 'nx.jpg',
-            r_background + 'py.jpg', r_background + 'ny.jpg',
-            r_background + 'pz.jpg', r_background + 'nz.jpg' ];
-        */
-
         const cubeTextureBackground = new THREE.CubeTextureLoader().load(urls_background);
         scene.background = cubeTextureBackground;
 
@@ -69,6 +252,7 @@ function main() {
         var floor = new THREE.Mesh( new THREE.PlaneGeometry( 100000, 100000, 1,
             1 ), new THREE.MeshBasicMaterial( { color: 0x0, side: THREE.DoubleSide } ) );
         floor.rotation.x = degrees_to_radians(90);
+        floor.position.y = -15;
         scene.add( floor );
 
         // set camera position
@@ -90,7 +274,7 @@ function main() {
         addGLTFToScene("models/astro13_run/scene.gltf", [400, 55, 0],
             [0.2, 0.2, 0.2], degrees_to_radians(205));
 
-        addGLTFToScene("models/astro13_jump/scene.gltf", [470, 55, -140],
+        addGLTFToScene("models/astro13_jump/scene.gltf", [470, 47, -140],
             [20, 20, 20], degrees_to_radians(240));
 
         addGLTFToScene("models/alduin/scene.gltf", [600, 130, 300],
@@ -103,7 +287,8 @@ function main() {
             [0.4, 0.4, 0.4]);
 
         addGLTFToScene("models/stage_light/scene.gltf", [850, 30, 400],
-            [7,7,7,], degrees_to_radians(-90));
+            [7,7,7,], degrees_to_radians(-90), 0, true,
+            true, "rocket");
 
         const stageLight = new THREE.PointLight(0xffffff, 15, 70);
         addLightToScene(stageLight, [830, 60, 380], true, 0.1, 70)
@@ -148,12 +333,6 @@ function main() {
         const stageSpotLight = new THREE.SpotLight( 0xDEFDFF, 1 , 0, Math.PI / 28);
         addLightToScene(stageSpotLight, [830, 60, 380], true, 0.1, 1300,
             3, planet)
-
-        //scene.add( new THREE.CameraHelper( stageSpotLight.shadow.camera ) );
-
-        //spotLightHelper = new THREE.SpotLightHelper( stageSpotLight );
-        //scene.add( spotLightHelper );
-        //addLightToScene(planetLight, [-100, 450, 350], true);
     }
 
 
@@ -168,6 +347,7 @@ function main() {
         const portal = new THREE.Mesh( new THREE.CircleGeometry( 100, 100 ),
             new THREE.MeshBasicMaterial( { envMap: cubeTexturePortal } ) );
         portal.position.set(xPos,160,-250);
+        portal.name = "portal";
         scene.add( portal );
 
         // set particles around the portal
@@ -199,6 +379,7 @@ function main() {
         particles.position.y = 30;
 
         // set square of triangles over the portal
+        // (code from 'https://github.com/mrdoob/three.js/blob/master/examples/webgl_buffergeometry_uint.html')
         const triangles = 10000;
 
         const squareGeometry = new THREE.BufferGeometry();
@@ -289,6 +470,7 @@ function main() {
         scene.add( square );
 
         // set circle of monkeys over the portal
+        // (code from 'https://github.com/mrdoob/three.js/blob/master/examples/webgl_postprocessing_dof2.html')
         const loader2 = new THREE.BufferGeometryLoader();
         loader2.load( '/models/suzanne_buffergeometry.json', function ( monkeyGeometry ) {
             monkeyGeometry.computeVertexNormals();
@@ -345,14 +527,16 @@ function main() {
 
 
     function addGLTFToScene(gltfPathFile, position, scale, yRotation = 0, xRotation = 0,
-                            castShadow=true, receiveShadow=true) {
+                            castShadow=true, receiveShadow=true, name =null) {
         const object = new THREE.GLTFLoader();
         object.load(gltfPathFile,
             function (gltf) {
                 gltf.scene.position.set(position[0], position[1], position[2]);
                 gltf.scene.scale.set(scale[0], scale[1], scale[2]);
-                gltf.scene.rotation.x = xRotation
-                gltf.scene.rotation.y = yRotation
+                gltf.scene.rotation.x = xRotation;
+                gltf.scene.rotation.y = yRotation;
+                if (name)
+                    gltf.scene.name = name;
                 gltf.scene.traverse( function( node ) {
                     if ( node.isMesh ) {
                         node.castShadow = castShadow;
@@ -364,7 +548,6 @@ function main() {
                 console.error(error);
             });
     }
-
 
     function addLightToScene(light, position = null, castShadow = false, shadowNear=null,
                              shadowFar=null, shadowRadius=null, target=null, decay=null,
@@ -393,12 +576,27 @@ function main() {
             scene.add(light)
     }
 
+    function getRenderTarget() {
+        let target = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
+        target.texture.format = THREE.RGBFormat;
+        target.texture.encoding = THREE.sRGBEncoding;
+        target.texture.minFilter = THREE.NearestFilter;
+        target.texture.magFilter = THREE.NearestFilter;
+        target.texture.generateMipmaps = false;
+        target.stencilBuffer = false;
+        target.depthBuffer = true;
+        target.depthTexture = new THREE.DepthTexture();
+        target.depthTexture.format = THREE.DepthFormat;
+        target.depthTexture.type = THREE.UnsignedIntType;
+        return target;
+    }
 
     function animate() {
-        //spotLightHelper.update();
+        requestAnimationFrame(animate);
+        renderer.setRenderTarget(basicTarget);
+        TWEEN.update();
         renderer.render(scene, camera);
         sceneToRender();
-        requestAnimationFrame(animate);
     }
 
     function sceneToRender() {
@@ -415,6 +613,11 @@ function main() {
         const time = Date.now() * 0.001;
         square.rotation.x = time * 0.025;
         square.rotation.y = time * 0.05;
+
+        // apply DoF effect
+        CoCPass.uniforms.tDepth.value = basicTarget.depthTexture;
+        DoFPass.uniforms.tOriginal.value = basicTarget.texture;
+        DoFComposer.render();
 
     }
 
