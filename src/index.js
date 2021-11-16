@@ -278,7 +278,7 @@ function main() {
         addGLTFToScene("../models/astro13_run/scene.gltf", [400, 55, 0],
             [0.2, 0.2, 0.2], degrees_to_radians(205));
 
-        addGLTFToScene("../models/astro13_jump/scene.gltf", [470, 47, -140],
+        addGLTFToScene("../models/astro13_jump/scene.gltf", [470, 46, -140],
             [20, 20, 20], degrees_to_radians(240));
 
         addGLTFToScene("../models/alduin/scene.gltf", [600, 130, 300],
