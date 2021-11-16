@@ -1,0 +1,11 @@
+Model Information:
+* title:	Fantasy Warped Terrain
+* source:	https://sketchfab.com/3d-models/fantasy-warped-terrain-c133bad7281b4ae6bc90c12912cc7b9a
+* author:	aqsa_g (https://sketchfab.com/aqsa_g)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Fantasy Warped Terrain" (https://sketchfab.com/3d-models/fantasy-warped-terrain-c133bad7281b4ae6bc90c12912cc7b9a) by aqsa_g (https://sketchfab.com/aqsa_g) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

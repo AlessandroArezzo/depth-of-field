@@ -476,7 +476,7 @@ function main() {
         // set circle of monkeys over the portal
         // (code from 'https://github.com/mrdoob/three.js/blob/master/examples/webgl_postprocessing_dof2.html')
         const loader2 = new THREE.BufferGeometryLoader();
-        loader2.load( '/models/suzanne_buffergeometry.json', function ( monkeyGeometry ) {
+        loader2.load( '/models/monkeys/suzanne_buffergeometry.json', function ( monkeyGeometry ) {
             monkeyGeometry.computeVertexNormals();
             const monkeyMaterial = new THREE.MeshPhongMaterial( {
                 envMap: cubeTextureBackground, color:0xffffff,
