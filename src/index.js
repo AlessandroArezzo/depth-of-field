@@ -1,15 +1,20 @@
-import {EffectComposer} from "https://cdn.jsdelivr.net/npm/three@0.115/examples/jsm/postprocessing/EffectComposer.js";
-import {ShaderPass} from "https://cdn.jsdelivr.net/npm/three@0.115/examples/jsm/postprocessing/ShaderPass.js";
-import {RenderPass} from "https://cdn.jsdelivr.net/npm/three@0.115/examples/jsm/postprocessing/RenderPass.js";
-import {GUI} from "https://cdn.jsdelivr.net/npm/three@0.115/examples/jsm/libs/dat.gui.module.js";
-import {FXAAShader} from "https://cdn.jsdelivr.net/npm/three@0.115/examples/jsm/shaders/FXAAShader.js";
+import {EffectComposer} from "three/examples/jsm/postprocessing/EffectComposer.js";
+import {ShaderPass} from "three/examples/jsm/postprocessing/ShaderPass.js";
+import {FXAAShader} from "three/examples/jsm/shaders/FXAAShader.js";
+import {GUI} from "three/examples/jsm/libs/dat.gui.module.js";
+import * as THREE from 'three';
+import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
+import vertexShader from "./VertexShader.glsl"
+import cocShader from "./CoCFragmentShader.glsl"
+import dofShader from "./DoFFragmentShader.glsl"
+import {TWEEN} from "three/examples/jsm/libs/tween.module.min";
+import Stats from "three/examples/jsm/libs/stats.module"
+import {OrbitControls} from  "three/examples/jsm/controls/OrbitControls";
 
 function degrees_to_radians(degrees) {
     const pi = Math.PI;
     return degrees * (pi/180);
 }
-
-main()
 
 function main() {
 
@@ -20,12 +25,11 @@ function main() {
     };
 
     // Set renderer
-    var renderer = window.WebGLRenderingContext ? new THREE.WebGLRenderer({antialias: true})
-            : new THREE.CanvasRenderer();
+    var renderer = new THREE.WebGLRenderer({antialias: true});
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.shadowMap.enabled = true;
-    document.getElementById("webgl-container").appendChild(renderer.domElement);
+    document.body.appendChild(renderer.domElement);
 
     // set scene
     var scene = new THREE.Scene(); // scena contenente tutti gli oggetti
@@ -39,8 +43,7 @@ function main() {
     );
 
     // Set controls
-    const controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.target = new THREE.Vector3(-2.5, 3, -200);
+    const controls = new OrbitControls(camera, renderer.domElement);
     controls.update()
 
     // init scene
@@ -53,8 +56,8 @@ function main() {
     const basicTarget = getRenderTarget();
 
     const CoCShader = {
-        vertexShader: document.getElementById( 'vertexShader' ).textContent,
-        fragmentShader: document.getElementById( 'CoCShader' ).textContent,
+        vertexShader: vertexShader,
+        fragmentShader: cocShader,
         uniforms: {
             cameraNear: { value: camera.near },
             cameraFar: { value: camera.far },
@@ -64,15 +67,17 @@ function main() {
             aperture: {value: defaultCameraParameters.aperture},
         },
     };
+
     const DoFShader = {
-        vertexShader: document.getElementById( 'vertexShader' ).textContent,
-        fragmentShader: document.getElementById( 'DoFShader' ).textContent,
+        vertexShader: vertexShader,
+        fragmentShader: dofShader,
         uniforms: {
             tDiffuse: {value: null},
             tOriginal: {value: null},
             heightTex: {value: 1.0 / window.innerHeight.toFixed(1)},
             widthTex: {value: 1.0 / window.innerWidth.toFixed(1)},
             bokehBlurSize: {value: 3.0},
+            applyEffect: {value: true},
         }
     };
 
@@ -80,11 +85,9 @@ function main() {
     antialiasingPass.uniforms[ 'resolution' ].value.set( 1 / window.innerWidth, 1 / window.innerHeight );
     antialiasingPass.renderToScreen = true;
 
-    const renderPass = new RenderPass( scene, camera );
     const DoFComposer = new EffectComposer(renderer);
     const CoCPass = new ShaderPass( CoCShader )
     const DoFPass = new ShaderPass( DoFShader )
-    DoFComposer.addPass( renderPass );
     DoFComposer.addPass( CoCPass );
     DoFComposer.addPass( DoFPass );
     DoFComposer.addPass(antialiasingPass);
@@ -220,19 +223,21 @@ function main() {
 
     {
         const DofFolder = gui.addFolder("Depth Of Field");
+
         DofFolder.add(guiControls, "dofEnabled", "enabled").name("DoF enabled").listen().onChange(function (){
             const dofEnabled = guiControls.dofEnabled;
-            CoCPass.enabled = dofEnabled;
-            DoFPass.enabled = dofEnabled;
+            DoFPass.uniforms.applyEffect = {value: dofEnabled};
             antialiasingPass.enabled = dofEnabled;
         });
+
         DofFolder.add(CoCPass.uniforms.focalDepth, 'value', 0, 1., defaultCameraParameters.focalDepth).step(0.001).name('focalDepth');
         DofFolder.add(CoCPass.uniforms.focalLength, 'value', 12., 100., defaultCameraParameters.focalLength).step(1.0).name('focalLength');
         DofFolder.add(CoCPass.uniforms.aperture, 'value', 1., 10., defaultCameraParameters.aperture).step(0.1).name('aperture');
         DofFolder.add(DoFPass.uniforms.bokehBlurSize, 'value', 1, 5., 3.).step(1,).name('blurSize');
         DofFolder.open();
     }
-
+    const stats = new Stats();
+    document.body.appendChild(stats.dom);
 
     // launch animate function
     animate();
@@ -262,36 +267,35 @@ function main() {
         const ambientLight = new THREE.AmbientLight(0xffffff, 1);
         addLightToScene(ambientLight);
 
-        // add element to the scene
-
         addPortalToScene(cubeTextureBackground, 300, -250);
 
         addPlanet();
 
-        addGLTFToScene("models/fantasy_warped_terrain/scene.gltf", [0, 0, 0],
+        addGLTFToScene("../models/fantasy_warped_terrain/scene.gltf", [0, 0, 0],
             [2000, 2000, 2000], 0, 0, false);
 
-        addGLTFToScene("models/astro13_run/scene.gltf", [400, 55, 0],
+
+        addGLTFToScene("../models/astro13_run/scene.gltf", [400, 55, 0],
             [0.2, 0.2, 0.2], degrees_to_radians(205));
 
-        addGLTFToScene("models/astro13_jump/scene.gltf", [470, 47, -140],
+        addGLTFToScene("../models/astro13_jump/scene.gltf", [470, 47, -140],
             [20, 20, 20], degrees_to_radians(240));
 
-        addGLTFToScene("models/alduin/scene.gltf", [600, 130, 300],
+        addGLTFToScene("../models/alduin/scene.gltf", [600, 130, 300],
             [0.15, 0.15, 0.15], degrees_to_radians(120));
 
-        addGLTFToScene("models/alduin/scene.gltf", [400, 250, 420],
+        addGLTFToScene("../models/alduin/scene.gltf", [400, 250, 420],
             [0.07, 0.07, 0.07], degrees_to_radians(120));
 
-        addGLTFToScene("models/rocket/scene.gltf", [850, 30, 500],
+        addGLTFToScene("../models/rocket/scene.gltf", [850, 30, 500],
             [0.4, 0.4, 0.4]);
 
-        addGLTFToScene("models/stage_light/scene.gltf", [850, 30, 400],
+        addGLTFToScene("../models/stage_light/scene.gltf", [850, 30, 400],
             [7,7,7,], degrees_to_radians(-90), 0, true,
             true, "rocket");
 
         const stageLight = new THREE.PointLight(0xffffff, 15, 70);
-        addLightToScene(stageLight, [830, 60, 380], true, 0.1, 70)
+        addLightToScene(stageLight, [830, 60, 380], true, 0.1, 70);
     }
 
     function addPlanet(){
@@ -346,7 +350,7 @@ function main() {
         // set portal
         const portal = new THREE.Mesh( new THREE.CircleGeometry( 100, 100 ),
             new THREE.MeshBasicMaterial( { envMap: cubeTexturePortal } ) );
-        portal.position.set(xPos,160,-250);
+        portal.position.set(xPos,160, zPos);
         portal.name = "portal";
         scene.add( portal );
 
@@ -461,7 +465,7 @@ function main() {
         squareGeometry.computeBoundingSphere();
         const squareMaterial = new THREE.MeshPhongMaterial( {
             color: 0xaaaaaa, specular: 0xffffff, shininess: 250,
-            side: THREE.DoubleSide, vertexColors: true, transparent: true,
+            side: THREE.DoubleSide, vertexColors: true, transparent: false,
             emissive: 0xaaaaaa, emissiveIntensity: 0.05
         } );
         const square = new THREE.Mesh( squareGeometry, squareMaterial );
@@ -526,10 +530,10 @@ function main() {
     }
 
 
-    function addGLTFToScene(gltfPathFile, position, scale, yRotation = 0, xRotation = 0,
+    function addGLTFToScene(gltfObject, position, scale, yRotation = 0, xRotation = 0,
                             castShadow=true, receiveShadow=true, name =null) {
-        const object = new THREE.GLTFLoader();
-        object.load(gltfPathFile,
+        const object = new GLTFLoader();
+        object.load(gltfObject,
             function (gltf) {
                 gltf.scene.position.set(position[0], position[1], position[2]);
                 gltf.scene.scale.set(scale[0], scale[1], scale[2]);
@@ -593,8 +597,8 @@ function main() {
 
     function animate() {
         requestAnimationFrame(animate);
-        renderer.setRenderTarget(basicTarget);
         TWEEN.update();
+        renderer.setRenderTarget(basicTarget);
         renderer.render(scene, camera);
         sceneToRender();
     }
@@ -603,6 +607,8 @@ function main() {
 
         // update controls
         controls.update();
+        stats.update();
+
         // Rotate planet
         const planet = scene.getObjectByName( "planet" );
         planet.rotation.x +=0.002
@@ -618,11 +624,10 @@ function main() {
         CoCPass.uniforms.tDepth.value = basicTarget.depthTexture;
         DoFPass.uniforms.tOriginal.value = basicTarget.texture;
         DoFComposer.render();
-
     }
-
-
 }
+
+main();
 
 
 
