@@ -33,4 +33,17 @@ Other examples of comparison between the scene without depth field and with the 
 ![Screen rocket and scene without DoF](images/screens/rocket_scene.png)
 ![Screen rocket and scene with DoF](images/screens/rocket_scene_DoF.png)
 
+## Installation
 
+To install the project dependencies:
+
+1. Clone this repository with the command
+```sh
+git clone https://github.com/AlessandroArezzo/depth-of-field.git
+```
+2. Run ```npm install``` in the root folder of the repository
+
+
+## Usage
+
+Just run ```npm start```  to start the webserver and go to http://localhost:8080.
