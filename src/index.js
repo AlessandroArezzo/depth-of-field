@@ -10,6 +10,30 @@ import dofShader from "./DoFFragmentShader.glsl"
 import {TWEEN} from "three/examples/jsm/libs/tween.module.min";
 import Stats from "three/examples/jsm/libs/stats.module"
 import {OrbitControls} from  "three/examples/jsm/controls/OrbitControls";
+import px_background from "../textures/cube/MilkyWay/dark-s_px.jpg"
+import nx_background from "../textures/cube/MilkyWay/dark-s_nx.jpg"
+import py_background from "../textures/cube/MilkyWay/dark-s_py.jpg"
+import ny_background from "../textures/cube/MilkyWay/dark-s_ny.jpg"
+import pz_background from "../textures/cube/MilkyWay/dark-s_pz.jpg"
+import nz_background from "../textures/cube/MilkyWay/dark-s_nz.jpg"
+import px_portal from "../textures/cube/portal_map/px.png"
+import nx_portal from "../textures/cube/portal_map/nx.png"
+import py_portal from "../textures/cube/portal_map/py.png"
+import ny_portal from "../textures/cube/portal_map/ny.png"
+import pz_portal from "../textures/cube/portal_map/pz.png"
+import nz_portal from "../textures/cube/portal_map/nz.png"
+
+import earth_texture from "../textures/planets/earth_atmos_2048.jpg"
+import diffuse_texture_planet from "../textures/planet/rough_plasterbrick_05_diff_2k.jpg"
+import roughness_texture_planet from "../textures/planet/rough_plasterbrick_05_rough_2k.jpg"
+
+import fantasy_warped_terrain from "../models/fantasy_warped_terrain/scene.gltf"
+import astro_run from "../models/astro13_run/scene.gltf"
+import astro_jump from "../models/astro13_jump/scene.gltf"
+import alduin from "../models/alduin/scene.gltf"
+import rocket from "../models/rocket/scene.gltf"
+import stageLightObj from "../models/stage_light/scene.gltf"
+import monkey from "../models/monkeys/suzanne_buffergeometry.json"
 
 function degrees_to_radians(degrees) {
     const pi = Math.PI;
@@ -245,10 +269,9 @@ function main() {
     function initScene(){
 
         // Set background
-        const r_background = '/textures/cube/MilkyWay/';
-        const urls_background = [ r_background + 'dark-s_px.jpg', r_background + 'dark-s_nx.jpg',
-            r_background + 'dark-s_py.jpg', r_background + 'dark-s_ny.jpg',
-            r_background + 'dark-s_pz.jpg', r_background + 'dark-s_nz.jpg' ];
+        const urls_background = [ px_background, nx_background,
+            py_background, ny_background,
+            pz_background, nz_background ];
 
         const cubeTextureBackground = new THREE.CubeTextureLoader().load(urls_background);
         scene.background = cubeTextureBackground;
@@ -271,26 +294,25 @@ function main() {
 
         addPlanet();
 
-        addGLTFToScene("../models/fantasy_warped_terrain/scene.gltf", [0, 0, 0],
+        addGLTFToScene(fantasy_warped_terrain, [0, 0, 0],
             [2000, 2000, 2000], 0, 0, false);
 
-
-        addGLTFToScene("../models/astro13_run/scene.gltf", [400, 55, 0],
+        addGLTFToScene(astro_run, [400, 55, 0],
             [0.2, 0.2, 0.2], degrees_to_radians(205));
 
-        addGLTFToScene("../models/astro13_jump/scene.gltf", [470, 46, -140],
+        addGLTFToScene(astro_jump, [470, 46, -140],
             [20, 20, 20], degrees_to_radians(240));
 
-        addGLTFToScene("../models/alduin/scene.gltf", [600, 130, 300],
+        addGLTFToScene(alduin, [600, 130, 300],
             [0.15, 0.15, 0.15], degrees_to_radians(120));
 
-        addGLTFToScene("../models/alduin/scene.gltf", [400, 250, 420],
+        addGLTFToScene(alduin, [400, 250, 420],
             [0.07, 0.07, 0.07], degrees_to_radians(120));
 
-        addGLTFToScene("../models/rocket/scene.gltf", [850, 30, 500],
+        addGLTFToScene(rocket, [850, 30, 500],
             [0.4, 0.4, 0.4]);
 
-        addGLTFToScene("../models/stage_light/scene.gltf", [850, 30, 400],
+        addGLTFToScene(stageLightObj, [850, 30, 400],
             [7,7,7,], degrees_to_radians(-90), 0, true,
             true, "rocket");
 
@@ -301,13 +323,13 @@ function main() {
     function addPlanet(){
         const textureLoader = new THREE.TextureLoader();
 
-        const diffuse = textureLoader.load( '/textures/planet/rough_plasterbrick_05_diff_2k.jpg' );
+        const diffuse = textureLoader.load( diffuse_texture_planet );
         diffuse.wrapS = THREE.RepeatWrapping;
         diffuse.wrapT = THREE.RepeatWrapping;
         diffuse.repeat.x = 10;
         diffuse.repeat.y = 10;
 
-        const roughness = textureLoader.load( '/textures/planet/rough_plasterbrick_05_rough_2k.exr' );
+        const roughness = textureLoader.load( roughness_texture_planet );
         roughness.wrapS = THREE.RepeatWrapping;
         roughness.wrapT = THREE.RepeatWrapping;
 
@@ -341,10 +363,9 @@ function main() {
 
 
     function addPortalToScene(cubeTextureBackground, xPos, zPos){
-        const r_portal = '/textures/cube/portal_map/';
-        const urls_portal = [ r_portal + 'px.png', r_portal + 'nx.png',
-            r_portal + 'py.png', r_portal + 'ny.png',
-            r_portal + 'pz.png', r_portal + 'nz.png' ];
+        const urls_portal = [ px_portal, nx_portal,
+            py_portal, ny_portal,
+            pz_portal, nz_portal ];
         const cubeTexturePortal = new THREE.CubeTextureLoader().load(urls_portal);
 
         // set portal
@@ -476,7 +497,7 @@ function main() {
         // set circle of monkeys over the portal
         // (code from 'https://github.com/mrdoob/three.js/blob/master/examples/webgl_postprocessing_dof2.html')
         const loader2 = new THREE.BufferGeometryLoader();
-        loader2.load( '/models/monkeys/suzanne_buffergeometry.json', function ( monkeyGeometry ) {
+        loader2.load( monkey, function ( monkeyGeometry ) {
             monkeyGeometry.computeVertexNormals();
             const monkeyMaterial = new THREE.MeshPhongMaterial( {
                 envMap: cubeTextureBackground, color:0xffffff,
@@ -508,7 +529,7 @@ function main() {
         } );
 
         // set earth over the portal
-        new THREE.TextureLoader().load( '/textures/planets/earth_atmos_2048.jpg', function ( texture ) {
+        new THREE.TextureLoader().load( earth_texture, function ( texture ) {
             let earthMaterial = new THREE.MeshPhysicalMaterial({
                     roughness: 0.5,
                     map: texture,
