@@ -9,7 +9,7 @@ module.exports = (env, argv) => {
     return ({
         entry: './src/index.js',
         output: {
-            path: path.resolve(__dirname, 'dist'),
+            path: path.resolve(__dirname, process.env.WEBPACK_PUBLIC_PATH || 'dist'),
             filename: 'bundle.js',
         },
         module: {
