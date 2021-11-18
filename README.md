@@ -36,6 +36,12 @@ Other examples of comparison between the scene without depth field and with the 
 <br>
 <br>
 <br>
+![Screen rocket and scene without DoF](images/screens/square_astronauts.png)
+![Screen rocket and scene with DoF](images/screens/square_astronauts_DoF.png)
+<br>
+<br>
+<br>
+<br>
 ![Screen rocket and scene without DoF](images/screens/rocket_scene.png)
 ![Screen rocket and scene with DoF](images/screens/rocket_scene_DoF.png)
 
