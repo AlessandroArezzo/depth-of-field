@@ -10,6 +10,7 @@ module.exports = (env, argv) => {
         entry: './src/index.js',
         output: {
             path: path.resolve(__dirname, process.env.WEBPACK_PUBLIC_PATH || 'dist'),
+            publicPath: "/depth-of-field/",
             filename: 'bundle.js',
         },
         module: {
