@@ -4,6 +4,12 @@ This project contains the implementation on a 3D scene of the depth of field eff
 ## Implementation
 This project was implemented using the Three.js library and the webpack package.
 
+## Demo
+
+It is possible to interact with the project demo at the link https://alessandroarezzo.github.io/depth-of-field/
+
+Once open, wait for all the objects in the scene to load, which can take a few seconds.
+
 ## Scene
 
 The depth of field effect allows you to focus only on objects placed at a certain distance from the camera and to blur 
@@ -47,3 +53,4 @@ git clone https://github.com/AlessandroArezzo/depth-of-field.git
 ## Usage
 
 Just run ```npm start```  to start the webserver and go to http://localhost:8080.
+
