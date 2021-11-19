@@ -100,7 +100,7 @@ function main() {
             tOriginal: {value: null},
             heightTex: {value: 1.0 / window.innerHeight.toFixed(1)},
             widthTex: {value: 1.0 / window.innerWidth.toFixed(1)},
-            bokehBlurSize: {value: 3.0},
+            blurSize: {value: 3.0},
             applyEffect: {value: true},
         }
     };
@@ -257,7 +257,7 @@ function main() {
         DofFolder.add(CoCPass.uniforms.focalDepth, 'value', 0, 1., defaultCameraParameters.focalDepth).step(0.001).name('focalDepth');
         DofFolder.add(CoCPass.uniforms.focalLength, 'value', 12., 100., defaultCameraParameters.focalLength).step(1.0).name('focalLength');
         DofFolder.add(CoCPass.uniforms.aperture, 'value', 1., 10., defaultCameraParameters.aperture).step(0.1).name('aperture');
-        DofFolder.add(DoFPass.uniforms.bokehBlurSize, 'value', 1, 5., 3.).step(1,).name('blurSize');
+        DofFolder.add(DoFPass.uniforms.blurSize, 'value', 1, 5., 3.).step(1,).name('blurSize');
         DofFolder.open();
     }
     const stats = new Stats();

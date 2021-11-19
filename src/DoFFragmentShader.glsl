@@ -3,7 +3,7 @@
 uniform sampler2D tDiffuse; // current color that represents CoC
 uniform sampler2D tOriginal; // original color of the current pixel (not blurred)
 
-uniform float bokehBlurSize; // intensity of the blurred effect
+uniform float blurSize; // intensity of the blurred effect
 uniform float heightTex;
 uniform float widthTex;
 uniform bool applyEffect;
@@ -19,35 +19,37 @@ void main() {
 
     float minCoC = 0.1;
 
-    const float max_iterations = 100.;
-    float blurSize = bokehBlurSize + 1.;
-    float CoC = texture2D(tDiffuse, vUv).b; // CoC of the current color
+    const float max_iterations = 100.; // variables used in the cicle
+    float blur = blurSize + 1.;
+    float CoC = texture2D(tDiffuse, vUv).b; // CoC of the current color (read from the blue component)
 
+    // If applyEffect is enabled the depth of field effect is apply.
+    // Otherwise the pixel is assigned its original color.
     if(applyEffect){
-        if (CoC > minCoC){ // if CoC <= minCoC -> pixel not blurred
-            float bokehBlurWeightTotal = 0.0;
-            vec3 blurColor = vec3(0.0);
+        // if CoC > minCoC pixel blurred. Otherwise pixel not blurred because it is in the focus plane
+        if (CoC > minCoC){
+            vec3 colorBlurred = vec3(0.0);
+            float weightColorSum = 0.0;
+            // cicle on neighboors of the current pixel
             for (float i=0.; i<max_iterations; i++){
-                if (i > blurSize*2.) break;
+                if (i > blur*2.) break;
                 for (float j=0.; j<max_iterations; j++){
-                    if (j > blurSize*2.) break;
-                    vec2 dir = vec2(i-bokehBlurSize, j-bokehBlurSize) * vec2(widthTex, heightTex);
+                    if (j > blur*2.) break;
+                    vec2 dir = vec2(i-blurSize, j-blurSize) * vec2(widthTex, heightTex);
                     float dist = length(dir);
-                    if (dist > bokehBlurSize){
+                    if (dist > blurSize){
                         continue;
                     }
-                    vec2 curUv = dir + vUv;
-                    float curCoC = texture2D(tDiffuse, curUv).b;
-                    if (curCoC/2. >= dist) {
-                        float weight = getWeight(dist, bokehBlurSize);
-                        bokehBlurWeightTotal += weight;
-                        blurColor +=  weight * texture2D(tOriginal, curUv).rgb;
+                    float curCoC = texture2D(tDiffuse, dir + vUv).b;
+                    if (curCoC > minCoC) {
+                        float currentWeight = getWeight(dist, blurSize);
+                        weightColorSum += currentWeight;
+                        colorBlurred +=  currentWeight * texture2D(tOriginal, dir + vUv).rgb;
                     }
                 }
             }
-            blurColor /= bokehBlurWeightTotal;
-
-            gl_FragColor.rgb = mix(sourceColor, blurColor, CoC);
+            colorBlurred /= weightColorSum;
+            gl_FragColor.rgb = mix(sourceColor, colorBlurred, CoC);
             gl_FragColor.a = 1.0;
 
         }

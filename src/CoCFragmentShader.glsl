@@ -28,8 +28,7 @@ void main() {
     / (distance * (focalDepth - focalLength));
     CoC = clamp(CoC, -1.0, 1.0);
 
-    /* assign CoC of the foreground pixel to green component and CoC of the background
-    pixel to blue component */
+    /* assign CoC to blue component */
     gl_FragColor.b = abs(CoC);
 
 }
