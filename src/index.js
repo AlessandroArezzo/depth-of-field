@@ -43,7 +43,7 @@ function degrees_to_radians(degrees) {
 function main() {
 
     const defaultCameraParameters = {
-        focalDepth: 0.09,
+        focalDepth: 0.11,
         focalLength: 35,
         aperture: 6
     };
