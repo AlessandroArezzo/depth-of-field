@@ -1,5 +1,4 @@
 #include <packing>
-// depth of the pixel
 uniform sampler2D tDepth;
 
 // camera parameters
@@ -30,5 +29,4 @@ void main() {
 
     /* assign CoC to blue component */
     gl_FragColor.b = abs(CoC);
-
 }
