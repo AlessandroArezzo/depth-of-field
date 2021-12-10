@@ -1,9 +1,9 @@
 #include <packing>
 
-uniform sampler2D tDiffuse; // current color that represents CoC
-uniform sampler2D tOriginal; // original color of the current pixel (not blurred)
+uniform sampler2D tDiffuse;
+uniform sampler2D tOriginal;
 
-uniform float blurSize; // intensity of the blurred effect
+uniform float blurSize;
 uniform float heightTex;
 uniform float widthTex;
 uniform bool applyEffect;

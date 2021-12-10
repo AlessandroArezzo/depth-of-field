@@ -19,10 +19,10 @@ float readDepth( sampler2D depthSampler, vec2 coord ) {
 void main() {
     // calculate distance of the object respect to the camera
     float depth = readDepth( tDepth, vUv );
-    float focalDepth = focalDepth * 1000.0;
-    float distance = - cameraFar * cameraNear / (depth * (cameraFar - cameraNear) - cameraFar)* 1000.0;
+    float distance = - cameraFar * cameraNear / (depth * (cameraFar - cameraNear) - cameraFar) * 1000.0;
 
     // compute Circle of Confusion (CoC) for the current pixel
+    float focalDepth = focalDepth * 1000.0;
     float CoC = aperture * (focalLength * (distance - focalDepth))
     / (distance * (focalDepth - focalLength));
     CoC = clamp(CoC, -1.0, 1.0);
@@ -30,3 +30,4 @@ void main() {
     /* assign CoC to blue component */
     gl_FragColor.b = abs(CoC);
 }
+
